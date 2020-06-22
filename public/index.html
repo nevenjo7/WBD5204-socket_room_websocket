@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    
+    <div id="app">
+        <form action="#" method="post" id="message-form" v-on:submit.prevent="stopForm">
+            <input type="text" v-model="myInput">
+            <input type="submit" value="Send Message">
+        </form>
+        <ul id="writeMessage"></ul>
+        <button type="button" id="close" v-on:click.prevent="closeConnection">Disconnect/Connect
+        </button>
+    </div>
+
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script>
+        var app = new Vue({
+            el: '#app',
+            data() {
+                return {
+                    socket: io(),
+                    myInput: ''
+                }
+            },
+            methods:{
+                stopForm() {
+                    if(this.socket.connected) {
+                    this.socket.send(this.myInput)
+                    }
+                    document.getElementById('writeMessage').innerHTML += 'Sent:' + this.myInput + '<br>'
+                    this.myInput = ''
+                },
+                closeConnection() {
+                    console.log(this.socket.connected)
+                    console.log(this.socket.disconnected)
+                    if(this.socket.disconnected) {
+                        this.socket = io()
+                        this.socket.on('message', (msg) => {
+                        document.getElementById('writeMessage').innerHTML += 'Received:' + msg + '<br>'
+                        }) 
+                    } else {
+                        this.socket.disconnect()
+                    }
+                    
+                }
+            },
+            mounted() {
+                this.socket.on('connect', () => {
+                    this.socket.on('message', (msg) => {
+                        console.log(msg)
+                        document.getElementById('writeMessage').innerHTML += 'Received:' + msg + '<br>'
+                    })
+                })
+            }
+        })
+    </script>
+</body>
+</html>
